@@ -5,6 +5,9 @@ from nselib import capital_market
 from nselib import derivatives
 pd.options.display.float_format = '{:.2f}'.format
 import os
+import time
+from datetime import datetime, time as dt_time
+import pytz
 
 # Set IST timezone
 IST = pytz.timezone('Asia/Kolkata')
@@ -38,4 +41,6 @@ while True:
         print(f"Outside market hours: {datetime.now(IST)}")
 
     time.sleep(60)
+
+
 
