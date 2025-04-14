@@ -50,9 +50,9 @@ while True:
     else:
         print(f"Outside market hours: {datetime.now(IST)}")
     
-    if now_ist >= dt_time(15, 30):
-        print("Market closed. Exiting script.")
-        break
+    # if now_ist >= dt_time(15, 30):
+    #     print("Market closed. Exiting script.")
+    #     break
 
     time.sleep(60)
 
