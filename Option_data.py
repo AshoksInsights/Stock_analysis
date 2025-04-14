@@ -26,6 +26,7 @@ def push_to_git():
         print(f"Git error: {e}")
 
 while True:
+    now_ist = datetime.now(IST).time()
     if is_market_hours():
         try:
             # Fetch the latest option chain
