@@ -45,6 +45,7 @@ while True:
         final_df.to_csv('final_df.csv', index=False)
         
         print(f"Appended data at {datetime.now(IST)}")
+        push_to_git()
     except Exception as e:
         print(f"Error occurred: {e}")
     # else:
