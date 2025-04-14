@@ -17,13 +17,13 @@ def is_market_hours():
     return dt_time(9, 15) <= now_ist <= dt_time(15, 30)
 
 def push_to_git():
-    try:
-        subprocess.run(["git", "add", "final_df.csv"], check=True)
-        subprocess.run(["git", "commit", "-m", f"Update final_df.csv at {datetime.now(IST)}"], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print(f"Pushed to git at {datetime.now(IST)}")
-    except subprocess.CalledProcessError as e:
-        print(f"Git error: {e}")
+    try:
+        subprocess.run(["git", "add", "final_df.csv"], check=True)
+        subprocess.run(["git", "commit", "-m", f"Update final_df.csv at {datetime.now(IST)}"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print(f"Pushed to git at {datetime.now(IST)}")
+    except subprocess.CalledProcessError as e:
+        print(f"Git error: {e}")
 
 while True:
     if is_market_hours():
