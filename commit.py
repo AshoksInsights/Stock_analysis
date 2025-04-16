@@ -6,7 +6,7 @@ import random
 from colorama import Fore, Style, init
 from git import Repo, exc
 
-import lists
+# import lists
 
 # Initialize colorama
 init(autoreset=True)
@@ -38,18 +38,18 @@ def auto_commit(repo_path, readme_path, commit_prefix):
     """
     # Print the current timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print_section("Timestamp", Fore.MAGENTA, timestamp, Style.RESET_ALL)
+    # print_section("Timestamp", Fore.MAGENTA, timestamp, Style.RESET_ALL)
 
     # Generate a random animal name and gemstone
-    random_animal = random.choice(lists.animals)
-    random_gemstone = random.choice(lists.gemstones)
+    # random_animal = random.choice(lists.animals)
+    # random_gemstone = random.choice(lists.gemstones)
 
     # Open the repository
     repo = Repo(repo_path)
 
     # Check the current status
     status = repo.git.status()
-    print_section("Current Status", Fore.BLUE, status, Style.RESET_ALL)
+    # print_section("Current Status", Fore.BLUE, status, Style.RESET_ALL)
 
     # Read the README.md content and replace the last update line or append a new one
     update_line = f'Updated on {timestamp}\n'
@@ -69,15 +69,15 @@ def auto_commit(repo_path, readme_path, commit_prefix):
     repo.index.add([readme_path])
 
     # Create a commit
-    commit_message = f'{commit_prefix} {random_gemstone} {random_animal}'
+    commit_message = 'updated'
     repo.index.commit(commit_message)
 
     # Print commit message
-    print_section("Commit Message", Fore.YELLOW, commit_message, Style.RESET_ALL)
+    # print_section("Commit Message", Fore.YELLOW, commit_message, Style.RESET_ALL)
 
     # Print the diff of the commit
-    commit_diff = repo.git.diff('HEAD~1', 'HEAD')
-    print_section("Commit Diff", Fore.CYAN, commit_diff, Style.RESET_ALL)
+    # commit_diff = repo.git.diff('HEAD~1', 'HEAD')
+    # print_section("Commit Diff", Fore.CYAN, commit_diff, Style.RESET_ALL)
 
     # Push the changes to the remote repository
     try:
