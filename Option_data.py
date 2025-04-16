@@ -12,7 +12,7 @@ import pytz
 import json
 from commit import auto_commit
 
-CONFIG_PATH = '/Stock_analysis/config.json'
+CONFIG_PATH = '/config.json'
 
 
 # Set IST timezone
