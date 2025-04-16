@@ -7,3 +7,5 @@ pathlib == 1.0.1
 yfinance >= 0.2.52
 pretty-html-table==0.9.16
 prettytable==3.13.0
+GitPython
+colorama
