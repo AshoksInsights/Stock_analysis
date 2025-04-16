@@ -9,6 +9,12 @@ import time
 from datetime import datetime, time as dt_time
 import pytz
 
+import json
+from commit import auto_commit
+
+CONFIG_PATH = '/Stock_analysis/config.json'
+
+
 # Set IST timezone
 IST = pytz.timezone('Asia/Kolkata')
 
@@ -43,9 +49,16 @@ while True:
         # Append and save
         final_df = pd.concat([final_df, op_df])
         final_df.to_csv('final_df.csv', index=False)
+                
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as config_file:
+            config = json.load(config_file)
         
-        print(f"Appended data at {datetime.now(IST)}")
-        push_to_git()
+        repo_path = config['repo_path']
+        readme_path = os.path.join(repo_path, config['readme_path'])
+        commit_prefix = config['commit_prefix']
+        
+        # Call the auto_commit function
+        auto_commit(repo_path, readme_path, commit_prefix)
     except Exception as e:
         print(f"Error occurred: {e}")
     # else:
