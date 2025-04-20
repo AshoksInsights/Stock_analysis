@@ -1,101 +1,223 @@
-import base64
-import hmac
-import os
-import struct
-import time
-from urllib.parse import urlparse, parse_qs
-
-import requests
 from fyers_apiv3 import fyersModel
+import pandas as pd
+from fyers_apiv3.FyersWebsocket import data_ws
+import datetime as dt
+import time 
+import numpy as np
+import math
+import json
+import pyotp
+from urllib import parse
+import sys
+from datetime import datetime, timedelta
+import pandas_ta as ta
+import matplotlib.pyplot as plt
+import requests
 
-totp_key = "W3UOSVQQO2V4KJT3RRXYJDHFBKP3372N"  # totp_key (ex., "OMKRABCDCDVDFGECLWXK6OVB7T4DTKU5")
-username = "YJ08526"  # Fyers Client ID (ex., "TK01248")
-pin = 7776  # four-digit PIN
-client_id = "ETYHMVN1Q6-100"  # App ID of the created app (ex., "L9NY305RTW-100")
-secret_key = "I0CJUFFA03"  # Secret ID of the created app
-redirect_uri = "https://www.google.com/"  # Redircet URL you entered while creating the app (ex., "https://trade.fyers.in/api-login/redirect-uri/index.html")
 
+FY_ID = "YJ08526"
+APP_ID_TYPE = "2"
+TOTP_KEY = "W3UOSVQQO2V4KJT3RRXYJDHFBKP3372N"
+PIN = "7776"
+APP_ID = "ETYHMVN1Q6"
+REDIRECT_URI = "https://www.google.com/"
+APP_TYPE = "100"
+APP_ID_HASH = 'dc1cd1f989e67ad53623c26ac48315e1e88ed60bdd58a2cbc12ea294c248d3db'
+response_type = "code"
+grant_type = "authorization_code"
 
-def read_file():
+BASE_URL = "https://api-t2.fyers.in/vagator/v2"
+BASE_URL_2 = "https://api-t1.fyers.in/api/v3"
+# BASE_URL_2 = "https://api.fyers.in/api/v2/"
+URL_SEND_LOGIN_OTP = BASE_URL + "/send_login_otp"
+URL_VERIFY_TOTP = BASE_URL + "/verify_otp"
+URL_VERIFY_PIN = BASE_URL + "/verify_pin"
+URL_TOKEN = BASE_URL_2 + "/token"
+URL_VALIDATE_AUTH_CODE = BASE_URL_2 + "/validate-authcode"
+
+SUCCESS = 1
+ERROR = -1
+def verify_client_id(CLIENT_ID,app_id):
     try:
-        with open("fyers_token.txt", "r") as f:
-            token = f.read().strip()
-        return token
-    except FileNotFoundError:
-        return None
+        payload = {
+            "fy_id": CLIENT_ID,
+            "app_id": app_id
+        }
 
+        result_string = requests.post(url=URL_SEND_LOGIN_OTP, json=payload)
+        # print("result_string : ", result_string.text)
+        if result_string.status_code != 200:
+            return [ERROR, result_string.text]
 
-def write_file(token):
-    with open("fyers_token.txt", "w") as f:
-        f.write(token)
+        result = json.loads(result_string.text)
+        request_key = result["request_key"]
 
+        return [SUCCESS, request_key]
+    
+    except Exception as e:
+        return [ERROR, e]
+def generate_totp(TOTP_KEY):
+    try:
+        generated_totp = pyotp.TOTP(TOTP_KEY).now()
+        return [SUCCESS, generated_totp]
+    
+    except Exception as e:
+        return [ERROR, e]
+def verify_totp(request_key, totp):
+    try:
+        payload = {
+            "request_key": request_key,
+            "otp": totp
+        }
 
-def totp(key, time_step=30, digits=6, digest="sha1"):
-    key = base64.b32decode(key.upper() + "=" * ((8 - len(key)) % 8))
-    counter = struct.pack(">Q", int(time.time() / time_step))
-    mac = hmac.new(key, counter, digest).digest()
-    offset = mac[-1] & 0x0F
-    binary = struct.unpack(">L", mac[offset : offset + 4])[0] & 0x7FFFFFFF
-    return str(binary)[-digits:].zfill(digits)
+        result_string = requests.post(url=URL_VERIFY_TOTP, json=payload)
+        if result_string.status_code != 200:
+            return [ERROR, result_string.text]
 
+        result = json.loads(result_string.text)
+        request_key = result["request_key"]
 
-def get_token():
-    headers = {
-        "Accept": "application/json",
-        "Accept-Language": "en-US,en;q=0.9",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-    }
+        return [SUCCESS, request_key]
+    
+    except Exception as e:
+        return [ERROR, e]
+def verify_PIN(request_key, pin):
+    try:
+        payload = {
+            "request_key": request_key,
+            "identity_type": "pin",
+            "identifier": pin
+        }
 
-    s = requests.Session()
-    s.headers.update(headers)
+        result_string = requests.post(url=URL_VERIFY_PIN, json=payload)
+        if result_string.status_code != 200:
+            return [ERROR, result_string.text]
+    
+        result = json.loads(result_string.text)
+        access_token = result["data"]["access_token"]
 
-    data1 = f'{{"fy_id":"{base64.b64encode(f"{username}".encode()).decode()}","app_id":"2"}}'
-    r1 = s.post("https://api-t2.fyers.in/vagator/v2/send_login_otp_v2", data=data1)
+        return [SUCCESS, access_token]
+    
+    except Exception as e:
+        return [ERROR, e]
 
-    request_key = r1.json()["request_key"]
-    data2 = f'{{"request_key":"{request_key}","otp":{totp(totp_key)}}}'
-    r2 = s.post("https://api-t2.fyers.in/vagator/v2/verify_otp", data=data2)
-    assert r2.status_code == 200, f"Error in r2:\n {r2.text}"
+def token(fy_id, app_id, redirect_uri, app_type, access_token):
+    try:
+        payload = {
+            "fyers_id": fy_id,
+            "app_id": app_id,
+            "redirect_uri": redirect_uri,
+            "appType": app_type,
+            "code_challenge": "",
+            "state": "sample_state",
+            "scope": "",
+            "nonce": "",
+            "response_type": "code",
+            "create_cookie": True
+        }
+        headers={'Authorization': f'Bearer {access_token}'}
 
-    request_key = r2.json()["request_key"]
-    data3 = f'{{"request_key":"{request_key}","identity_type":"pin","identifier":"{base64.b64encode(f"{pin}".encode()).decode()}"}}'
-    r3 = s.post("https://api-t2.fyers.in/vagator/v2/verify_pin_v2", data=data3)
-    assert r3.status_code == 200, f"Error in r3:\n {r3.json()}"
+        result_string = requests.post(
+            url=URL_TOKEN, json=payload, headers=headers
+        )
 
-    headers = {"authorization": f"Bearer {r3.json()['data']['access_token']}", "content-type": "application/json; charset=UTF-8"}
-    data4 = f'{{"fyers_id":"{username}","app_id":"{client_id[:-4]}","redirect_uri":"{redirect_uri}","appType":"100","code_challenge":"","state":"abcdefg","scope":"","nonce":"","response_type":"code","create_cookie":true}}'
-    r4 = s.post("https://api.fyers.in/api/v3/token", headers=headers, data=data4)
-    assert r4.status_code == 308, f"Error in r4:\n {r4.json()}"
+        if result_string.status_code != 308:
+            return [ERROR, result_string.text]
 
-    parsed = urlparse(r4.json()["Url"])
-    auth_code = parse_qs(parsed.query)["auth_code"][0]
+        result = json.loads(result_string.text)
+        url = result["Url"]
+        auth_code = parse.parse_qs(parse.urlparse(url).query)['auth_code'][0]
 
-    session = fyersModel.SessionModel(client_id=client_id, secret_key=secret_key, redirect_uri=redirect_uri, response_type="code", grant_type="authorization_code")
-    session.set_token(auth_code)
-    response = session.generate_token()
-    return response["access_token"]
+        return [SUCCESS, auth_code]
+    
+    except Exception as e:
+        return [ERROR, e]
+def validate_authcode(auth_code):
+    try:
+        payload = {
+            "grant_type": "authorization_code",
+            "appIdHash": APP_ID_HASH,
+            "code": auth_code,
+        }
 
+        result_string = requests.post(url=URL_VALIDATE_AUTH_CODE, json=payload)
+        if result_string.status_code != 200:
+            return [ERROR, result_string.text]
 
-def get_profile(token):
-    fyers = fyersModel.FyersModel(client_id=client_id, token=token, log_path=os.getcwd())
-    return fyers.get_profile()
+        result = json.loads(result_string.text)
+        access_token = result["access_token"]
 
-
+        return [SUCCESS, access_token]
+    
+    except Exception as e:
+        return [ERROR, e]
 def main():
-    token = read_file()
-    if token is None:
-        token = get_token()
+    # Step 1 - Retrieve request_key from verify_client_id Function
+    verify_client_id_result = verify_client_id(FY_ID,APP_ID)
+    if verify_client_id_result[0] != SUCCESS:
+        print(f"verify_client_id failure - {verify_client_id_result[1]}")
+        sys.exit()
+    else:
+        print("verify_client_id success")
 
-    resp = get_profile(token)
+    # Step 2 - Generate totp
+    generate_totp_result = generate_totp(TOTP_KEY)
+    if generate_totp_result[0] != SUCCESS:
+        print(f"generate_totp failure - {generate_totp_result[1]}")
+        sys.exit()
+    else:
+        print("generate_totp success")
 
-    if "error" in resp["s"] or "error" in resp["message"] or "expired" in resp["message"]:
-        token = get_token()
-        resp = get_profile(token)
+    # Step 3 - Verify totp and get request key from verify_totp Function.
+    request_key = verify_client_id_result[1]
+    totp = generate_totp_result[1]
+    verify_totp_result = verify_totp(request_key=request_key, totp=totp)
+    if verify_totp_result[0] != SUCCESS:
+        print(f"verify_totp_result failure - {verify_totp_result}")
+        sys.exit()
+    else:
+        print("verify_totp_result success")
 
-    write_file(token)
-    print("Fyers access token is saved in `fyers_token.txt` file.")
-    print(resp)
+    # Step 4 - Verify pin and send back access token
+    request_key_2 = verify_totp_result[1]
+    verify_pin_result = verify_PIN(request_key=request_key_2, pin=PIN)
+    if verify_pin_result[0] != SUCCESS:
+        print(f"verify_pin_result failure - {verify_pin_result[1]}")
+        sys.exit()
+    else:
+        print("verify_pin_result success")
+
+    # Step 5 - Get auth code for API V3 App from trade access token
+    token_result = token(
+        fy_id=FY_ID, app_id=APP_ID, redirect_uri=REDIRECT_URI, app_type=APP_TYPE,
+        access_token=verify_pin_result[1]
+    )
+    if token_result[0] != SUCCESS:
+        print(f"token_result failure - {token_result[1]}")
+        sys.exit()
+    else:
+        print("token_result success")
+
+    # Step 6 - Get API V3 access token from validating auth code
+    auth_code = token_result[1]
+    validate_authcode_result = validate_authcode(auth_code=auth_code)
+    if token_result[0] != SUCCESS:
+        print(f"validate_authcode failure - {validate_authcode_result[1]}")
+        sys.exit()
+    else:
+        print("validate_authcode success")
+    
+    access_token = APP_ID + "-" + APP_TYPE + ":" + validate_authcode_result[1]
+
+    print(f"\naccess_token - {access_token}\n")
+
+    return access_token
 
 
-if __name__ == "__main__":
-    main()
+access_token = main()
+data = {"access_token": access_token}
+with open('access_token.json', 'w') as json_file:
+    json.dump(data, json_file)
+
+
+
