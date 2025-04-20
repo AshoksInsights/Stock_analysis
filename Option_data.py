@@ -24,6 +24,8 @@ def is_market_hours():
 
 def push_to_git():
     try:
+        subprocess.run(["git", "config", "--global", "user.name", 'github-actions[bot]'])
+        subprocess.run(["git", "config", "--global", "user.email", 'github-actions[bot]@users.noreply.github.com'])
         subprocess.run(["git", "add", "final_df.csv"], check=True)
         subprocess.run(["git", "commit", "-m", f"Update final_df.csv at {datetime.now(IST)}"], check=True)
         subprocess.run(["git", "push"], check=True)
@@ -50,15 +52,7 @@ while True:
         final_df = pd.concat([final_df, op_df])
         final_df.to_csv('final_df.csv', index=False)
                 
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as config_file:
-            config = json.load(config_file)
-        
-        repo_path = config['repo_path']
-        readme_path = os.path.join(repo_path, config['readme_path'])
-        commit_prefix = config['commit_prefix']
-        
-        # Call the auto_commit function
-        auto_commit(repo_path, readme_path, commit_prefix)
+        push_to_git()
     except Exception as e:
         print(f"Error occurred: {e}")
     # else:
