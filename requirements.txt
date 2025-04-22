@@ -9,4 +9,4 @@ pretty-html-table==0.9.16
 prettytable==3.13.0
 GitPython
 colorama
-subprocess
+
