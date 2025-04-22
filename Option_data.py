@@ -11,7 +11,7 @@ import pytz
 
 import json
 from commit import auto_commit
-
+import subprocess
 CONFIG_PATH = 'config.json'
 
 
