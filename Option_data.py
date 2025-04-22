@@ -24,6 +24,8 @@ def is_market_hours():
 
 def push_to_git():
     try:
+        subprocess.run(["git","init"])
+        subprocess.run(["git","remote","add","origin" , 'https://github.com/AshoksInsights/Stock_analysis'])
         subprocess.run(["git", "config", "--global", "user.name", 'github-actions[bot]'])
         subprocess.run(["git", "config", "--global", "user.email", 'github-actions[bot]@users.noreply.github.com'])
         subprocess.run(["git", "add", "final_df.csv"], check=True)
