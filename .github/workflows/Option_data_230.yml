@@ -29,4 +29,4 @@ jobs:
                 
     - name: Run main script
       run: |
-        python Option_data.py
+        python option_data_230.py
