@@ -2,7 +2,7 @@ name: option_data
 
 on:
   schedule:
-    - cron: "45 3 * * 1-5" 
+    - cron: "35 3 * * 1-5" 
   workflow_dispatch:  # Add this line to enable manual triggering
 
 jobs:
@@ -30,13 +30,3 @@ jobs:
     - name: Run main script
       run: |
         python Option_data.py
-
-    - name: Commit and push CSV
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add final_df.csv
-        git commit -m "Add output CSV"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.PYTHON_SCRIPT }}
