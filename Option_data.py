@@ -20,7 +20,7 @@ IST = pytz.timezone('Asia/Kolkata')
 
 def is_market_hours():
     now_ist = datetime.now(IST).time()
-    return dt_time(9, 15) <= now_ist <= dt_time(15, 30)
+    return dt_time(9, 15) <= now_ist <= dt_time(14, 30)
 
 def push_to_git():
     try:
@@ -37,32 +37,32 @@ def push_to_git():
 
 while True:
     now_ist = datetime.now(IST).time()
-    # if is_market_hours():
-    try:
-        # Fetch the latest option chain
-        df = derivatives.nse_live_option_chain('NIFTY')
-        df['Expiry_Date'] = pd.to_datetime(df['Expiry_Date']).dt.date
-        op_df = df[['Fetch_Time','Symbol','Expiry_Date','CALLS_LTP','Strike_Price','PUTS_LTP']]
-        
-        # Read existing data
+    if is_market_hours():
         try:
-            final_df = pd.read_csv('final_df.csv')
-        except FileNotFoundError:
-            final_df = pd.DataFrame(columns=op_df.columns)
-        
-        # Append and save
-        final_df = pd.concat([final_df, op_df])
-        final_df.to_csv('final_df.csv', index=False)
-                
-        push_to_git()
-    except Exception as e:
-        print(f"Error occurred: {e}")
-    # else:
-        # print(f"Outside market hours: {datetime.now(IST)}")
+            # Fetch the latest option chain
+            df = derivatives.nse_live_option_chain('NIFTY')
+            df['Expiry_Date'] = pd.to_datetime(df['Expiry_Date']).dt.date
+            op_df = df[['Fetch_Time','Symbol','Expiry_Date','CALLS_LTP','Strike_Price','PUTS_LTP']]
+            
+            # Read existing data
+            try:
+                final_df = pd.read_csv('final_df.csv')
+            except FileNotFoundError:
+                final_df = pd.DataFrame(columns=op_df.columns)
+            
+            # Append and save
+            final_df = pd.concat([final_df, op_df])
+            final_df.to_csv('final_df.csv', index=False)
+                    
+            push_to_git()
+        except Exception as e:
+            print(f"Error occurred: {e}")
+    else:
+        break
     
-    # if now_ist >= dt_time(15, 30):
-    #     print("Market closed. Exiting script.")
-    #     break
+    if now_ist >= dt_time(15, 30):
+        print("Market closed. Exiting script.")
+        break
 
     time.sleep(60)
 
