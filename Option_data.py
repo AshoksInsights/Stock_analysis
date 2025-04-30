@@ -10,7 +10,6 @@ from datetime import datetime, time as dt_time
 import pytz
 
 import json
-from commit import auto_commit
 import subprocess
 CONFIG_PATH = 'config.json'
 
