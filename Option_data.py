@@ -60,7 +60,7 @@ while True:
     else:
         break
     
-    if now_ist >= dt_time(15, 30):
+    if now_ist >= dt_time(14, 30):
         print("Market closed. Exiting script.")
         break
 
