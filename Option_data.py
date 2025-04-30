@@ -8,10 +8,8 @@ import os
 import time
 from datetime import datetime, time as dt_time
 import pytz
-
 import json
 import subprocess
-CONFIG_PATH = 'config.json'
 
 
 # Set IST timezone
