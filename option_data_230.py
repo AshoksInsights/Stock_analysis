@@ -58,7 +58,7 @@ while True:
         except Exception as e:
             print(f"Error occurred: {e}")
     else:
-        break
+        print("Out of market hours")
     
     if now_ist >= dt_time(15, 30):
         print("Market closed. Exiting script.")
