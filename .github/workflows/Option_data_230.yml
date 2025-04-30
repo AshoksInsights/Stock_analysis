@@ -2,7 +2,7 @@ name: option_data_230
 
 on:
   schedule:
-    - cron: "45 8 * * 1-5" 
+    - cron: "30 8 * * 1-5" 
   workflow_dispatch:  # Add this line to enable manual triggering
 
 jobs:
