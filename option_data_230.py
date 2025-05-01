@@ -19,7 +19,7 @@ IST = pytz.timezone('Asia/Kolkata')
 
 def is_market_hours():
     now_ist = datetime.now(IST).time()
-    return dt_time(14, 30) <= now_ist <= dt_time(15, 30)
+    return dt_time(14, 31) <= now_ist <= dt_time(15, 31)
 
 def push_to_git():
     try:
@@ -59,7 +59,7 @@ while True:
     else:
         print("Out of market hours")
     
-    if now_ist >= dt_time(15, 30):
+    if now_ist >= dt_time(15, 31):
         print("Market closed. Exiting script.")
         break
 
