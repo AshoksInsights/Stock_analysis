@@ -4,7 +4,7 @@ import requests
 import numpy as np
 from dateutil.relativedelta import relativedelta
 import pandas as pd
-from nselib.constants import *
+from constants import *
 import pandas_market_calendars as mcal
 
 default_header = {
