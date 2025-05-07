@@ -1,5 +1,5 @@
 pandas_ta
-nselib==1.5
+nselib==1.8
 numpy==1.26.4
 numba==0.60.0
 pandas==2.2.2
