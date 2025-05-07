@@ -10,5 +10,5 @@ import Analysis
 # df = derivatives.nse_live_option_chain('NIFTY')
 # df['Expiry_Date'] = pd.to_datetime(df['Expiry_Date']).dt.date
 # op_df = df[['Fetch_Time','Symbol','Expiry_Date','CALLS_LTP','Strike_Price','PUTS_LTP']]
-df = index_5min_breakout('^NSEI','3d')
+df = Analysis.index_5min_breakout('^NSEI','3d')
 print(df)
