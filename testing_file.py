@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from pretty_html_table import build_table
+import pytz
 import os
 my_variable = os.getenv('AUTO_MAIL')
 
