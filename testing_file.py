@@ -4,6 +4,7 @@ import datetime
 import Analysis
 import pandas_ta as ta
 import yfinance as yf
+import time
 from datetime import datetime, time as dt_time
 import smtplib
 from email.mime.multipart import MIMEMultipart
