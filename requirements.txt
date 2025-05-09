@@ -1,5 +1,6 @@
+setuptools
 pandas_ta
-nselib==1.8
+nselib==1.5
 numpy==1.26.4
 numba==0.60.0
 pandas==2.2.2
@@ -11,4 +12,3 @@ pandas_market_calendars
 requests
 beautifulsoup4
 scipy
-
