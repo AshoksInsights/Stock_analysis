@@ -123,7 +123,7 @@ while True:
             list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty"}
             dff= []
             for i in list_:
-                df = index_5min_breakout(i,'2d')[['Datetime','Close','breakout_down']]
+                df = index_5min_breakout(i,'1d')[['Datetime','Close','breakout_down']]
                 df['index'] = list_[i]
                 dff.append(df)
             breakout = pd.concat(dff)
