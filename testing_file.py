@@ -122,12 +122,15 @@ while True:
         try:
             list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty"}
             dff= []
+            chk = []
             for i in list_:
                 df = index_5min_breakout(i,'1d')[['Datetime','Close','breakout_down']]
                 df['index'] = list_[i]
                 dff.append(df)
             breakout = pd.concat(dff)
-            breakout.sort_values(by=['Datetime'])
+            breakout= breakout.sort_values(by=['Datetime'])
+            chk.append(breakout['Datetime'])
+            breakout = breakout[~breakout['Datetime'].isin(chk)]
             if len(breakout) == 0:
                 output = "<h1>No Breakout or Breakdown till now</h1>"  # HTML for the message
             else:
