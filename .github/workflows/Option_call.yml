@@ -1,4 +1,4 @@
-name: testing_file
+name: option_call
 
 on:
   schedule:
