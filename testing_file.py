@@ -118,11 +118,12 @@ def is_market_hours():
 
 while True:
     now_ist = datetime.now(IST).time()
+    chk = []
     if is_market_hours():
         try:
             list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty"}
             dff= []
-            chk = []
+            
             for i in list_:
                 df = index_5min_breakout(i,'1d')[['Datetime','Close','breakout_down']]
                 df['index'] = list_[i]
