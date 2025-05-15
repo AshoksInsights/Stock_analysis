@@ -55,7 +55,7 @@ def index_5min_breakout(ticker,p):
 def send_mail(output):
   sender_email = 'ragothaman4010@gmail.com'
   receiver_email = ['ragothaman4010@gmail.com','narendran2cool@gmail.com ','esyuvaraj@gmail.com','sriganishka@gmail.com']
-  receiver_email = ['ragothaman4010@gmail.com']
+  # receiver_email = ['ragothaman4010@gmail.com']
   subject = 'Today option calls'
   body = f"""
   <html>
@@ -130,7 +130,7 @@ while True:
                 dff.append(df)
             breakout = pd.concat(dff)
             breakout= breakout.sort_values(by=['Datetime'])
-            chk.append(breakout['Datetime'])
+            chk.extend(breakout['Datetime'])
             breakout = breakout[~breakout['Datetime'].isin(chk)]
             if len(breakout) == 0:
                 output = "<h1>No Breakout or Breakdown till now</h1>"  # HTML for the message
