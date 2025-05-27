@@ -115,10 +115,10 @@ IST = pytz.timezone('Asia/Kolkata')
 def is_market_hours():
     now_ist = datetime.now(IST).time()
     return dt_time(9, 15) <= now_ist <= dt_time(14, 45)
-
+  
+chk = []
 while True:
     now_ist = datetime.now(IST).time()
-    chk = []
     if is_market_hours():
         try:
             list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty"}
@@ -130,8 +130,11 @@ while True:
                 dff.append(df)
             breakout = pd.concat(dff)
             breakout= breakout.sort_values(by=['Datetime'])
-            chk.extend(breakout['Datetime'])
             breakout = breakout[~breakout['Datetime'].isin(chk)]
+            if breakout.empty :
+              print("No new breakout")
+            else:
+              chk.extend(breakout['Datetime'])
             if len(breakout) == 0:
                 output = "<h1>No Breakout or Breakdown till now</h1>"  # HTML for the message
             else:
