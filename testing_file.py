@@ -149,6 +149,6 @@ while True:
             print(f"Error occurred: {e}")
     else:
         break
-    time.sleep(300)
+    time.sleep(60)
             
 
