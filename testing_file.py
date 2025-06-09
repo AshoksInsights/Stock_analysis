@@ -121,7 +121,7 @@ while True:
     now_ist = datetime.now(IST).time()
     if is_market_hours():
         try:
-            list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty"}
+            list_ = {'^NSEI':"Nifty 50",'^NSEBANK':"BankNifty",'NIFTY_FIN_SERVICE.NS':"FinNifty",'^BSESN':"SENSEX"}
             dff= []
             
             for i in list_:
