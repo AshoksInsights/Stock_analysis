@@ -17,7 +17,7 @@ IST = pytz.timezone('Asia/Kolkata')
 
 def is_market_hours():
     now_ist = datetime.now(IST).time()
-    return dt_time(9, 15) <= now_ist <= dt_time(14, 30)
+    return dt_time(9, 15) <= now_ist <= dt_time(12, 30)
 
 def push_to_git():
     try:
