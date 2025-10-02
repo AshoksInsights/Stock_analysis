@@ -1,0 +1,45 @@
+
+name: breakout
+
+on:
+  schedule:
+    - cron: "0 9 * * 1-5" 
+  workflow_dispatch:  # Enables manual triggering
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_RUNNER_DEBUG: false
+      ACTIONS_STEP_DEBUG: false
+      DEBUG_MODE: false  # Optional toggle for your Python script
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12.1'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+                
+    - name: Set environment variable
+      run: echo "AUTO_MAIL=${{ secrets.AUTO_MAIL }}" >> $GITHUB_ENV
+      
+    - name: Run main script
+      run: |
+        python breakout_identifier.py
+        
+    - name: Commit and push CSV
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Add daily stock"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PYTHON_SCRIPT }}
