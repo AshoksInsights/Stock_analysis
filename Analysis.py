@@ -76,9 +76,41 @@ def next_targets(row):
     return [round(t,2) for t in targets_greater_than_close[:3]]
 
 #function to screen single stock
+# def stock_screen(ticker,p):
+#   df = yf.download(ticker, period = p , interval = '1d')
+#   df = df.droplevel(1,axis=1).reset_index()
+#   df['symbol'] = ticker.split('.')[0]
+#   df['smma'] = calculate_smma(df, period=7)
+#   df['rsi'] = ta.rsi(df['Close'])
+#   df['pct'] = (df['Close'].pct_change())*100
+#   df['dema'] = ta.dema(df['Close'], length=10)
+#   window_average(df,'Volume',30)
+#   df.rename(columns={'average_Volume':'average_Volume_30'},inplace = True)
+#   df['vol_chg'] = ((df['Volume'] - df['average_Volume_30']) / df['average_Volume_30'] ) * 100
+#   df['super_trend'] = ta.supertrend(df['High'], df['Low'], df['Close'], length=10, multiplier=3)['SUPERT_10_3.0']
+#   df['super_trend_color'] = np.where(df['Close'] > df['super_trend'] , "green" , "red")
+#   df['BBM'] = ta.bbands(close = df['Close'], length=20, std=2)['BBM_20_2.0']
+#   # df = calculate_fibonacci_pivots(df)
+#   #identify the position it changes from green to red or viceversa, insert 0 at initial position to avoid blank
+#   df['changeover'] = np.insert(np.diff(np.where(df['super_trend_color'] == 'green' , 1 , 0)),0,0)
+#   df['changeover2'] = np.insert(np.diff(np.where(df['super_trend_color'] == 'red' , 1 , 0)),0,0)
+#   df['condition'] = np.insert(np.diff(np.where((df['BBM'] < df['smma']) & (df['smma'] < df['dema']) ,1,0)),0,0)
+#   df['condition2'] = np.insert(np.diff(np.where((df['BBM'] > df['smma']) & (df['smma'] > df['dema']) ,1,0)),0,0)
+#   df['breakout_down'] = np.where((df['changeover'] == 1) & (df['condition'] == 1),"Breakout",np.where((df['changeover2']     == 1) & (df['condition2'] == 1),"Breakdown",np.nan))
+#   # np.where(df['changeover'] == 1 & df['condition'] == 1)
+#   df = df.iloc[np.where(((df['changeover'] == 1) & (df['condition'] == 1)) | ((df['changeover2'] == 1) &                        (df['condition2'] == 1)))]
+#   monthly = pd.read_csv('monthly_pivots.csv')
+#   monthly['Date'] = pd.to_datetime(monthly['Date'])
+#   df = df.merge(monthly[['Pivot','R1','R2','R3','S1','S2','S3']], left_on = [df['symbol'],df['Date'].dt.month , df['Date'].dt.year] , right_on = [monthly['symbol'],monthly['Date'].dt.month , monthly['Date'].dt.year] )
+#   df.drop(columns = ['key_1','key_0','key_2'], axis = 1 ,inplace = True )
+#   df['next_targets'] = df.apply(next_targets,axis=1)
+#   df = df[['symbol','Date','Close','pct','Volume','vol_chg','average_Volume_30','next_targets','breakout_down','rsi']]
+#   return df
 def stock_screen(ticker,p):
-  df = yf.download(ticker, period = p , interval = '1d')
-  df = df.droplevel(1,axis=1).reset_index()
+  df = yf.download(ticker, period = p , interval = '1d',auto_adjust=True,multi_level_index=False)
+  df['Vwap'] = ta.vwap(high=df['High'], low=df['Low'], close=df['Close'], volume=df['Volume'])
+  df.reset_index(inplace=True)  # Reset index to make 'Date' a column
+  # df = df.droplevel(1,axis=1).reset_index()
   df['symbol'] = ticker.split('.')[0]
   df['smma'] = calculate_smma(df, period=7)
   df['rsi'] = ta.rsi(df['Close'])
@@ -96,15 +128,22 @@ def stock_screen(ticker,p):
   df['changeover2'] = np.insert(np.diff(np.where(df['super_trend_color'] == 'red' , 1 , 0)),0,0)
   df['condition'] = np.insert(np.diff(np.where((df['BBM'] < df['smma']) & (df['smma'] < df['dema']) ,1,0)),0,0)
   df['condition2'] = np.insert(np.diff(np.where((df['BBM'] > df['smma']) & (df['smma'] > df['dema']) ,1,0)),0,0)
-  df['breakout_down'] = np.where((df['changeover'] == 1) & (df['condition'] == 1),"Breakout",np.where((df['changeover2']     == 1) & (df['condition2'] == 1),"Breakdown",np.nan))
+  condition1 = np.where((df['BBM'] < df['smma']) & (df['smma'] < df['dema']) ,1,0)
+  condition2 = np.where((df['BBM'] > df['smma']) & (df['smma'] > df['dema']) ,1,0)
+  df['breakout_down'] = np.where((df['changeover'] == 1) & (df['condition'] == 1),"Breakout",np.where((df['changeover2'] == 1) & (df['condition2'] == 1),"Breakdown",np.where((df['changeover'] == 1) & (condition1),"St Breakout",np.where((df['changeover2']== 1) & (condition2),"St Breakdown",np.nan))))
+  # df['breakout_down'] = np.where((df['changeover'] == 1) & (condition1),"Breakout",np.where((df['changeover2']== 1) & (condition2),"Breakdown",np.nan))
   # np.where(df['changeover'] == 1 & df['condition'] == 1)
-  df = df.iloc[np.where(((df['changeover'] == 1) & (df['condition'] == 1)) | ((df['changeover2'] == 1) &                        (df['condition2'] == 1)))]
+  # df = df.iloc[np.where(((df['changeover'] == 1) & (df['condition'] == 1)) | ((df['changeover2'] == 1) & (df['condition2'] == 1)))]
+  # df = df.iloc[np.where(((df['changeover'] == 1) & (condition1)) | ((df['changeover2'] == 1) & (condition2)))]
+  df = df[df['breakout_down'] != "nan"]
   monthly = pd.read_csv('monthly_pivots.csv')
   monthly['Date'] = pd.to_datetime(monthly['Date'])
   df = df.merge(monthly[['Pivot','R1','R2','R3','S1','S2','S3']], left_on = [df['symbol'],df['Date'].dt.month , df['Date'].dt.year] , right_on = [monthly['symbol'],monthly['Date'].dt.month , monthly['Date'].dt.year] )
   df.drop(columns = ['key_1','key_0','key_2'], axis = 1 ,inplace = True )
   df['next_targets'] = df.apply(next_targets,axis=1)
-  df = df[['symbol','Date','Close','pct','Volume','vol_chg','average_Volume_30','next_targets','breakout_down','rsi']]
+  df = df[['symbol','Date','Close','Vwap','pct','Volume','vol_chg','average_Volume_30','next_targets','breakout_down','rsi']]
+  df['pct'] = df['pct'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "N/A")
+  df['vol_chg'] = df['vol_chg'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "N/A")
   return df
 
 #Function to fetch bulk of stocks
@@ -312,10 +351,10 @@ def fundamental_data(tick):
     }]
     return pd.DataFrame(ls)
 
-def send_mail(output,output_breakdown):
+def send_mail(output,output_breakdown,output_stbreakout,output_stbreakdown):
   sender_email = 'ragothaman4010@gmail.com'
   receiver_email = ['ragothaman4010@gmail.com','narendran2cool@gmail.com ','esyuvaraj@gmail.com','sriganishka@gmail.com']
-  #receiver_email = ['ragothaman4010@gmail.com']
+  # receiver_email = ['ragothaman4010@gmail.com']
   subject = 'Today Breakout Stocks'
   body = f"""
   <html>
@@ -328,6 +367,14 @@ def send_mail(output,output_breakdown):
         Today's Breakdown Stocks:<br>
       </p>
       {output_breakdown}
+      <br>
+        Today's Super Trend Breakout Stocks:<br>
+      </p>
+      {output_stbreakout}
+      <br>
+        Today's Super Trend Breakdown Stocks:<br>
+      </p>
+      {output_stbreakdown}
       <br>
       <h3>
       Regards,<br>
@@ -373,4 +420,3 @@ def send_mail(output,output_breakdown):
       server.sendmail(sender_email, receiver_email, msg.as_string())
 
   print("Email sent successfully!")
-
